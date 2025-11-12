@@ -2,38 +2,45 @@
 
 A Next.js App Router project with Tailwind CSS, Prisma (Postgres), NextAuth, SWR, and Zod.
 
-## Getting Started
+## 🚀 Quick Start
 
-1. Install dependencies:
+### Local Development
+
 ```bash
+# 1. Install dependencies
 npm install
-```
 
-2. Set up environment variables:
-```bash
+# 2. Set up environment variables
 cp .env.example .env
-```
+# Edit .env with your DATABASE_URL and REDIS_URL
 
-3. Set up the database:
-```bash
-# Generate Prisma Client
-npm run db:generate
+# 3. Set up database
+npm run db:generate  # Generate Prisma Client
+npm run db:push      # Create database tables
+npm run db:seed      # Add sample data
 
-# Run migrations (or use db:push for development)
-npm run db:migrate
-# OR for quick development setup:
-npm run db:push
-
-# Seed the database with mock data
-npm run db:seed
-```
-
-4. Run the development server:
-```bash
+# 4. Start dev server
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser!
+
+**Need help?** See [GETTING_STARTED.md](./GETTING_STARTED.md) for detailed instructions.
+
+### Deploy to Production
+
+```bash
+# 1. Deploy to Vercel
+npm install -g vercel
+vercel --prod
+
+# 2. Set environment variables in Vercel Dashboard
+# 3. Run migrations and seed
+npm run db:push
+npm run db:seed
+```
+
+**Quick deploy guide:** See [QUICK_DEPLOY.md](./QUICK_DEPLOY.md) for 5-minute setup.
 
 ## Deployment
 
