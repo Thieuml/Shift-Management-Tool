@@ -17,7 +17,11 @@
     "test:api": "jest --testPathPattern=api",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:headed": "playwright test --headed"
+    "test:e2e:headed": "playwright test --headed",
+    "postinstall": "prisma generate",
+    "vercel-build": "prisma generate && prisma migrate deploy && next build",
+    "deploy:setup": "bash scripts/deploy-setup.sh",
+    "deploy:seed": "tsx scripts/seed-production.ts"
   },
   "dependencies": {
     "next": "^14.2.0",

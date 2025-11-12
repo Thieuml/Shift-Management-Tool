@@ -35,6 +35,31 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Deployment
+
+This project is configured for deployment on **Vercel** with **Neon** (PostgreSQL) and **Upstash** (Redis).
+
+### Quick Deploy
+
+1. **Set up services:**
+   - Create a Neon database at [neon.tech](https://neon.tech)
+   - Create an Upstash Redis database at [upstash.com](https://upstash.com)
+
+2. **Deploy to Vercel:**
+   ```bash
+   npm install -g vercel
+   vercel
+   ```
+
+3. **Configure environment variables** (see [DEPLOYMENT.md](./DEPLOYMENT.md))
+
+4. **Run seed script:**
+   ```bash
+   npm run deploy:seed
+   ```
+
+For detailed deployment instructions, see [DEPLOYMENT.md](./DEPLOYMENT.md).
+
 ## Database Schema
 
 The project includes a comprehensive Prisma schema with:
@@ -244,3 +269,9 @@ The test suite includes:
 - **E2E Tests**: Assign flow, Swap/Reassign flow, Payroll export flow
 
 Make sure your test database and Redis are configured before running tests.
+
+## Environment Variables
+
+See `.env.example` for local development and `.env.production.example` for production deployment.
+
+For Vercel deployment, see [scripts/vercel-env-setup.md](./scripts/vercel-env-setup.md).

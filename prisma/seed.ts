@@ -5,15 +5,28 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("🌱 Starting seed...");
 
-  // Clear existing data (in reverse order of dependencies)
-  console.log("🧹 Cleaning existing data...");
-  await prisma.assignment.deleteMany();
-  await prisma.shift.deleteMany();
-  await prisma.shiftTemplate.deleteMany();
-  await prisma.holiday.deleteMany();
-  await prisma.engineer.deleteMany();
-  await prisma.sector.deleteMany();
-  await prisma.country.deleteMany();
+  // Check if we should clear existing data (only in development)
+  const shouldClear = process.env.NODE_ENV !== "production" || process.env.CLEAR_DB === "true";
+  
+  if (shouldClear) {
+    // Clear existing data (in reverse order of dependencies)
+    console.log("🧹 Cleaning existing data...");
+    await prisma.assignment.deleteMany();
+    await prisma.shift.deleteMany();
+    await prisma.shiftTemplate.deleteMany();
+    await prisma.holiday.deleteMany();
+    await prisma.engineer.deleteMany();
+    await prisma.sector.deleteMany();
+    await prisma.country.deleteMany();
+  } else {
+    // In production, check if data already exists
+    const existingCountries = await prisma.country.count();
+    if (existingCountries > 0) {
+      console.log("⚠️  Database already contains data. Skipping seed.");
+      console.log("   To force reseed, set CLEAR_DB=true environment variable.");
+      return;
+    }
+  }
 
   // Create Countries
   console.log("🌍 Creating countries...");
