@@ -1,5 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// prisma/schema.prisma
 
 generator client {
   provider = "prisma-client-js"
@@ -7,9 +6,110 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = env("DATABASE_URL") // e.g. from Neon, Supabase, or RDS
 }
 
+model Country {
+  code          String          @id
+  name          String
+  timezone      String          // e.g. "Europe/Paris"
+  sectors       Sector[]
+  engineers     Engineer[]
+  shiftTemplates ShiftTemplate[]
+  shifts        Shift[]
+  holidays      Holiday[]
+}
+
+model Holiday {
+  id           String   @id @default(cuid())
+  country      Country  @relation(fields: [countryCode], references: [code], onDelete: Cascade)
+  countryCode  String
+  date         DateTime // stored in UTC (start of day)
+  label        String
+
+  @@index([countryCode, date])
+}
+
+model Sector {
+  id           String    @id @default(cuid())
+  name         String
+  active       Boolean   @default(true)
+  country      Country   @relation(fields: [countryCode], references: [code], onDelete: Cascade)
+  countryCode  String
+  shifts       Shift[]
+  engineers    Engineer[] @relation("EngineerSectors")
+
+  @@index([countryCode])
+}
+
+model Engineer {
+  id           String    @id @default(cuid())
+  name         String
+  active       Boolean   @default(true)
+  role         Role      @default(ENGINEER)
+  country      Country   @relation(fields: [countryCode], references: [code], onDelete: Cascade)
+  countryCode  String
+  sectors      Sector[]  @relation("EngineerSectors")
+  assignments  Assignment[]
+  createdAt    DateTime  @default(now())
+
+  @@index([countryCode])
+}
+
+enum Role {
+  ADMIN
+  OPS
+  ENGINEER
+}
+
+enum ShiftType {
+  ONSITE
+  REMOTE
+}
+
+model ShiftTemplate {
+  id             String     @id @default(cuid())
+  name           String
+  start          String     // e.g. "08:00"
+  end            String     // e.g. "20:00"
+  type           ShiftType
+  dow            String[]   // e.g. ["Sat", "Sun", "PH"]
+  requiredCount  Int        @default(1)
+  country        Country    @relation(fields: [countryCode], references: [code], onDelete: Cascade)
+  countryCode    String
+  shifts         Shift[]
+
+  @@index([countryCode])
+}
+
+model Shift {
+  id             String       @id @default(cuid())
+  date           DateTime     // day bucket (00:00 UTC)
+  country        Country      @relation(fields: [countryCode], references: [code], onDelete: Cascade)
+  countryCode    String
+  sector         Sector       @relation(fields: [sectorId], references: [id], onDelete: Cascade)
+  sectorId       String
+  template       ShiftTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  templateId     String?
+  assignments    Assignment[]
+
+  @@unique([countryCode, sectorId, date])
+  @@index([countryCode, date])
+}
+
+model Assignment {
+  id           String    @id @default(cuid())
+  engineer     Engineer  @relation(fields: [engineerId], references: [id], onDelete: Cascade)
+  engineerId   String
+  shift        Shift     @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  shiftId      String
+  createdAt    DateTime  @default(now())
+
+  @@unique([shiftId, engineerId])
+  @@index([engineerId])
+}
+
+// NextAuth models
 model User {
   id            String    @id @default(cuid())
   name          String?
