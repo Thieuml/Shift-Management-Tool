@@ -195,3 +195,52 @@ Mark a shift as performed or not performed.
 The application uses Redis for distributed locking on shift assignment operations. Make sure Redis is running and configure the `REDIS_URL` environment variable.
 
 **Default:** `redis://localhost:6379`
+
+## Testing
+
+### API Tests (Jest + Supertest)
+
+Run API tests:
+```bash
+npm run test:api
+```
+
+Run all tests:
+```bash
+npm run test
+```
+
+Run tests in watch mode:
+```bash
+npm run test:watch
+```
+
+### E2E Tests (Playwright)
+
+Install Playwright browsers (first time only):
+```bash
+npx playwright install
+```
+
+Run E2E tests:
+```bash
+npm run test:e2e
+```
+
+Run E2E tests with UI:
+```bash
+npm run test:e2e:ui
+```
+
+Run E2E tests in headed mode:
+```bash
+npm run test:e2e:headed
+```
+
+### Test Coverage
+
+The test suite includes:
+- **API Tests**: Schedule, Engineers, Assign, Reassign endpoints
+- **E2E Tests**: Assign flow, Swap/Reassign flow, Payroll export flow
+
+Make sure your test database and Redis are configured before running tests.
