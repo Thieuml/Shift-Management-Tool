@@ -91,6 +91,7 @@ model Shift {
   sectorId       String
   template       ShiftTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
   templateId     String?
+  performed      Boolean      @default(false)
   assignments    Assignment[]
 
   @@unique([countryCode, sectorId, date])
