@@ -1,0 +1,174 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL") // e.g. from Neon, Supabase, or RDS
+}
+
+// NextAuth models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Business models
+model Country {
+  code            String           @id
+  name            String
+  timezone        String // e.g. "Europe/Paris"
+  sectors         Sector[]
+  engineers       Engineer[]
+  recurringShifts RecurringShift[]
+  shifts          Shift[]
+  holidays        Holiday[]
+}
+
+model Holiday {
+  id          String   @id @default(cuid())
+  country     Country  @relation(fields: [countryCode], references: [code])
+  countryCode String
+  date        DateTime // stored in UTC (start of day)
+  label       String
+}
+
+model Sector {
+  id          String     @id @default(cuid())
+  name        String
+  active      Boolean    @default(true)
+  country     Country    @relation(fields: [countryCode], references: [code])
+  countryCode String
+  shifts      Shift[]
+  engineers   Engineer[] @relation("EngineerSectors")
+}
+
+model Engineer {
+  id          String       @id @default(cuid())
+  name        String
+  active      Boolean      @default(true)
+  role        Role         @default(ENGINEER)
+  country     Country      @relation(fields: [countryCode], references: [code])
+  countryCode String
+  sectors     Sector[]     @relation("EngineerSectors")
+  assignments Assignment[]
+  createdAt   DateTime     @default(now())
+}
+
+enum Role {
+  ADMIN
+  OPS
+  ENGINEER
+}
+
+enum ShiftType {
+  ONSITE
+  REMOTE
+}
+
+model RecurringShift {
+  id            String    @id @default(cuid())
+  name          String
+  start         String // e.g. "08:00"
+  end           String // e.g. "20:00"
+  type          ShiftType
+  dow           String[] // e.g. ["Sat", "Sun", "PH"] - only for recurring shifts
+  requiredCount Int       @default(1)
+  country       Country   @relation(fields: [countryCode], references: [code])
+  countryCode   String
+  sectorIds     String[] // Array of sector IDs this recurring shift applies to
+  startDate     DateTime // When this recurring pattern starts
+  endDate       DateTime // When it ends (can be extended)
+  autoExtend    Boolean   @default(false) // Auto-extend by 6 months when endDate approaches?
+  active        Boolean   @default(true)
+  shifts        Shift[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Shift {
+  id               String          @id @default(cuid())
+  date             DateTime // day bucket (00:00 UTC)
+  country          Country         @relation(fields: [countryCode], references: [code])
+  countryCode      String
+  sector           Sector          @relation(fields: [sectorId], references: [id])
+  sectorId         String
+  // Historical reference - kept for backward compatibility
+  templateId       String? // Deprecated: kept for historical shifts
+  // New reference to recurring shift
+  recurringShift   RecurringShift? @relation(fields: [recurringShiftId], references: [id])
+  recurringShiftId String?
+  type             ShiftType
+  plannedStart     DateTime
+  plannedEnd       DateTime
+  performedStart   DateTime?
+  performedEnd     DateTime?
+  status           ShiftStatus     @default(UNASSIGNED)
+  assignments      Assignment[]
+  updatedBy        String?
+  updatedAt        DateTime        @updatedAt
+  createdAt        DateTime        @default(now())
+}
+
+enum ShiftStatus {
+  UNASSIGNED
+  ASSIGNED
+  COMPLETED
+}
+
+model Assignment {
+  id         String   @id @default(cuid())
+  shift      Shift    @relation(fields: [shiftId], references: [id])
+  shiftId    String
+  engineer   Engineer @relation(fields: [engineerId], references: [id])
+  engineerId String
+  createdAt  DateTime @default(now())
+  createdBy  String?
+
+  @@unique([shiftId, engineerId])
+}
