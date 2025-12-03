@@ -2,6 +2,7 @@
 
 import { SessionProvider } from 'next-auth/react'
 import { SWRConfig } from 'swr'
+import { NovuProvider } from '@novu/react'
 
 const fetcher = async (url: string) => {
   const res = await fetch(url)
@@ -13,6 +14,8 @@ const fetcher = async (url: string) => {
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  const applicationIdentifier = process.env.NEXT_PUBLIC_NOVU_APP_ID
+  
   return (
     <SWRConfig
       value={{
@@ -21,7 +24,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
         revalidateOnReconnect: true,
       }}
     >
-      <SessionProvider>{children}</SessionProvider>
+      <SessionProvider>
+        {children}
+      </SessionProvider>
     </SWRConfig>
   )
 }
